@@ -1,0 +1,80 @@
+import { useEffect, useState } from "react";
+ import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { waLink } from "@/lib/contact";
+import { AlertTriangle, Flame } from "lucide-react";
+
+const schema = z.object({
+  name: z.string().trim().min(2, "Enter name").max(80),
+  mobile: z.string().trim().regex(/^[6-9]\d{9}$/, "10-digit mobile"),
+});
+type FormData = z.infer<typeof schema>;
+
+export const ExitIntentPopup = () => {
+  const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(false);
+   const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  useEffect(() => {
+    if (shown) return;
+    const onLeave = (e: MouseEvent) => {
+      if (e.clientY <= 0 && !shown) {
+        setShown(true);
+        setOpen(true);
+      }
+    };
+    const t = setTimeout(() => document.addEventListener("mouseout", onLeave), 8000);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("mouseout", onLeave);
+    };
+  }, [shown]);
+
+  const onSubmit = (data: FormData) => {
+    const msg = `Hi! Exit popup form\nName: ${data.name}\nMobile: ${data.mobile}\nI want to file TDS now.`;
+    window.open(waLink(msg), "_blank");
+     navigate("/thank-you");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+        <div className="bg-gradient-cta px-6 py-5 text-primary-foreground">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase backdrop-blur">
+            <Flame className="h-3.5 w-3.5" /> Wait!
+          </div>
+          <DialogHeader className="mt-3 space-y-1 text-left">
+            <DialogTitle className="font-display text-2xl font-extrabold text-primary-foreground">
+              TDS Delay = Penalty <AlertTriangle className="inline h-5 w-5" />
+            </DialogTitle>
+            <DialogDescription className="text-primary-foreground/90">
+              Abhi file karein aur interest bachayein. 🔥 Avoid late fees & notices.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 p-6">
+          <div>
+            <Label htmlFor="ep-name">Name</Label>
+            <Input id="ep-name" placeholder="Your name" {...register("name")} />
+            {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="ep-mob">Mobile</Label>
+            <Input id="ep-mob" type="tel" inputMode="numeric" placeholder="10-digit mobile" {...register("mobile")} />
+            {errors.mobile && <p className="mt-1 text-xs text-destructive">{errors.mobile.message}</p>}
+          </div>
+          <Button type="submit" variant="hero" size="lg" className="w-full">
+            File My TDS Now →
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
