@@ -156,15 +156,15 @@ export const Hero = () => {
         </div>
 
         {/* RIGHT */}
-        <div id="header-form" className="lg:col-span-5">
-          <div className="lg:sticky lg:top-24">
-            <HeaderForm
-              variant="hero"
-              title="File Your TDS Easily"
-              subtitle="Property ya Rent — CA support available"
-            />
-          </div>
-        </div>
+<div id="header-form" className="lg:col-span-5 flex items-start">
+  <div className="w-full lg:sticky lg:top-40 mt-12 lg:mt-50">
+    <HeaderForm
+      variant="hero"
+      title="File Your TDS Easily"
+      subtitle="Property ya Rent — CA support available"
+    />
+  </div>
+</div>
       </div>
     </section>
   );
