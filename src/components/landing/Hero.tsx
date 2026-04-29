@@ -157,7 +157,7 @@ export const Hero = () => {
 
         {/* RIGHT */}
 <div id="header-form" className="lg:col-span-5 flex items-start">
-  <div className="w-full lg:sticky lg:top-40 mt-12 lg:mt-50">
+  <div className="w-full lg:sticky lg:top-40 mt-12 lg:mt-60">
     <HeaderForm
       variant="hero"
       title="File Your TDS Easily"
