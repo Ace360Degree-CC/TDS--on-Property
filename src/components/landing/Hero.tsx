@@ -102,14 +102,16 @@ export const Hero = () => {
 
           {/* VIDEO SECTION */}
           <div
-            className={`group relative mt-8 overflow-hidden rounded-2xl border border-border shadow-card transition-all duration-500 ${
-              playVideo ? "bg-black flex items-center justify-center" : "bg-foreground"
+            className={`group relative mt-8 overflow-hidden rounded-2xl transition-all duration-500 ${
+              playVideo
+                ? "bg-transparent border border-transparent shadow-none w-full max-w-[320px] mx-auto"
+                : "bg-foreground border-border shadow-card"
             }`}
           >
 
             {/* THUMBNAIL */}
             {!playVideo && (
-              <div className="aspect-video w-full relative">
+              <div onClick={handlePlay} className="aspect-video w-full relative cursor-pointer">
                 <img
                   src={praveen}
                   alt="TDS Video"
@@ -129,20 +131,21 @@ export const Hero = () => {
 
             {/* SHORT VIDEO */}
             {playVideo && (
-              <div className="w-full h-[80vh] flex items-center justify-center relative">
+              <div className="relative w-full">
 
                 {/* CLOSE BUTTON */}
                 <button
                   onClick={handleClose}
-                  className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow"
+                  className="absolute top-4 right-4 z-10 rounded-full p-2 bg-black/60 text-white"
                 >
+                  <span className="sr-only">Close video</span>
                   ✕
                 </button>
 
                 {/* VERTICAL PLAYER */}
-                <div className="aspect-[9/16] h-full max-h-[700px]">
+                <div className="aspect-[9/16] w-full max-h-[460px] overflow-hidden rounded-2xl">
                   <iframe
-                    className="w-full h-full rounded-xl"
+                    className="h-full w-full"
                     src="https://www.youtube.com/embed/XTKa74jK9Z4?autoplay=1&mute=1&rel=0"
                     title="YouTube Short"
                     allow="autoplay; encrypted-media"

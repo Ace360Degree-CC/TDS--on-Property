@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 import { waLink } from "@/lib/contact";
 import { ArrowRight } from "lucide-react";
 
@@ -19,9 +20,13 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
+const LEAD_FORM_ENDPOINT = "https://formsubmit.co/ajax/pravreena2026@gmail.com";
+const ADMIN_EMAIL = "pravreena2026@gmail.com";
+
 export const FooterForm = () => {
   const [loading, setLoading] = useState(false);
    const navigate = useNavigate();
+
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { service: "Property TDS", caseType: "New Filing" },
@@ -29,11 +34,68 @@ export const FooterForm = () => {
   const service = watch("service");
   const caseType = watch("caseType");
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     setLoading(true);
     const msg = `Hi CA Praveen,\n\n*TDS Filing Request*\nName: ${data.name}\nMobile: ${data.mobile}\nEmail: ${data.email}\nService: ${data.service}\nCase Type: ${data.caseType}`;
     window.open(waLink(msg), "_blank");
-     navigate("/thank-you");
+
+    try {
+      const formData = new FormData();
+      formData.append("name", data.name.trim());
+      formData.append("mobile", data.mobile.trim());
+      formData.append("email", data.email.trim());
+      formData.append("service", data.service);
+      formData.append("caseType", data.caseType);
+      formData.append("_subject", `New TDS Filing Request: ${data.service}`);
+      formData.append("_template", "table");
+      formData.append("_to", ADMIN_EMAIL);
+      formData.append("_replyto", data.email.trim());
+
+      const response = await fetch(LEAD_FORM_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send email.");
+      }
+
+      const confirmationFormData = new FormData();
+      confirmationFormData.append("name", data.name.trim());
+      confirmationFormData.append("email", data.email.trim());
+      confirmationFormData.append("service", data.service);
+      confirmationFormData.append("_subject", `Confirmation: Your TDS Filing Request Received`);
+      confirmationFormData.append("_template", "table");
+      confirmationFormData.append("_to", data.email.trim());
+
+      await fetch(LEAD_FORM_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+        body: confirmationFormData,
+      }).catch(() => {
+        console.log("Confirmation email may not have been sent");
+      });
+
+      reset();
+      toast({
+        title: "Form submitted",
+        description: "Your request was sent. Check your email for confirmation.",
+      });
+      navigate("/thank-you");
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Submission failed",
+        description: "Email could not be sent automatically. Please try again or use WhatsApp.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
