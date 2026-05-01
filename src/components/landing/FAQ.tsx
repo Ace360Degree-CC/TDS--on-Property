@@ -5,7 +5,7 @@ const faqs = [
   { q: "Rent pe TDS kab lagta hai?", a: "Section 194IB ke under, agar monthly rent ₹50,000+ hai toh tenant ko 5% TDS deduct karna hota hai aur Form 26QC file karna hota hai." },
   { q: "Form 26QB kya hai?", a: "Property purchase pe TDS deposit karne ka form. Buyer ko file karna hota hai. Iska certificate Form 16B hota hai." },
   { q: "Form 26QC kya hai?", a: "Rent pe TDS deposit karne ka form. Tenant file karta hai. Iska certificate Form 16C hota hai jo landlord ko diya jata hai." },
-  { q: "Late filing pe kya hota hai?", a: "Late filing pe ₹200/day late fee (Section 234E), interest @1-1.5% per month, aur penalty Section 271H ke under ₹10,000 se ₹1,00,000 tak ho sakti hai." },
+  { q: "Late filing pe kya hota hai?", a: "Late filing pe ₹200/day late fee (Section 234E), interest @1.5% per month, aur penalty Section 271H ke under ₹10,000 se ₹1,00,000 tak ho sakti hai." },
   { q: "Galat file ho gaya — correction possible hai?", a: "Bilkul. TRACES portal pe correction request file ki ja sakti hai. Hum complete correction support dete hain." },
 ];
 

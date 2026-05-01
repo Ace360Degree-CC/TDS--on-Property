@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HeaderForm } from "./HeaderForm";
@@ -16,21 +16,103 @@ import praveen from "@/assets/praveen.png";
 
 export const Hero = () => {
   const [playVideo, setPlayVideo] = useState(false);
-  const timeoutRef = useRef<any>(null);
+  const [autoPlayed, setAutoPlayed] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement | null>(null);
+  const hasUserScrolledRef = useRef(false);
 
-  const handlePlay = () => {
+  const handlePlay = useCallback((fromAutoScroll = false) => {
+    if (playVideo) return;
     setPlayVideo(true);
+    if (fromAutoScroll) setAutoPlayed(true);
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     // Auto reset after video duration (adjust if needed)
     timeoutRef.current = setTimeout(() => {
       setPlayVideo(false);
     }, 60000); // 60 sec fallback
-  };
+  }, [playVideo]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setPlayVideo(false);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  };
+    setAutoPlayed(true);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
+  const autoPlayWhenVisible = useCallback(() => {
+    if (autoPlayed || playVideo) return;
+
+    const node = videoContainerRef.current;
+    if (!node) return;
+
+    const rect = node.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const isVisibleEnough = rect.top <= viewportHeight * 0.72 && rect.bottom >= viewportHeight * 0.22;
+
+    if (isVisibleEnough) handlePlay(true);
+  }, [autoPlayed, playVideo, handlePlay]);
+
+  useEffect(() => {
+    const node = videoContainerRef.current;
+    if (!node || autoPlayed) return;
+
+    let rafId = 0;
+    const markUserScroll = () => {
+      hasUserScrolledRef.current = true;
+    };
+
+    const runAutoPlayCheck = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        if (!hasUserScrolledRef.current) return;
+        autoPlayWhenVisible();
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!hasUserScrolledRef.current) return;
+        if (entries.some((entry) => entry.isIntersecting)) {
+          handlePlay(true);
+        }
+      },
+      { threshold: 0.4, rootMargin: "0px 0px -12% 0px" },
+    );
+
+    observer.observe(node);
+
+    // Scroll + touch fallback improves reliability on mobile browsers.
+    window.addEventListener("scroll", markUserScroll, { passive: true });
+    window.addEventListener("touchmove", markUserScroll, { passive: true });
+    window.addEventListener("wheel", markUserScroll, { passive: true });
+    window.addEventListener("scroll", runAutoPlayCheck, { passive: true });
+    window.addEventListener("touchmove", runAutoPlayCheck, { passive: true });
+    window.addEventListener("resize", runAutoPlayCheck);
+    window.addEventListener("orientationchange", runAutoPlayCheck);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", markUserScroll);
+      window.removeEventListener("touchmove", markUserScroll);
+      window.removeEventListener("wheel", markUserScroll);
+      window.removeEventListener("scroll", runAutoPlayCheck);
+      window.removeEventListener("touchmove", runAutoPlayCheck);
+      window.removeEventListener("resize", runAutoPlayCheck);
+      window.removeEventListener("orientationchange", runAutoPlayCheck);
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
+  }, [autoPlayed, autoPlayWhenVisible, handlePlay]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   return (
     <section id="top" className="relative overflow-hidden bg-gradient-hero">
@@ -102,6 +184,7 @@ export const Hero = () => {
 
           {/* VIDEO SECTION */}
           <div
+            ref={videoContainerRef}
             className={`group relative mt-8 overflow-hidden rounded-2xl transition-all duration-500 ${
               playVideo
                 ? "bg-transparent border border-transparent shadow-none w-full max-w-[320px] mx-auto"
@@ -111,7 +194,7 @@ export const Hero = () => {
 
             {/* THUMBNAIL */}
             {!playVideo && (
-              <div onClick={handlePlay} className="aspect-video w-full relative cursor-pointer">
+              <div onClick={() => handlePlay()} className="aspect-video w-full relative cursor-pointer">
                 <img
                   src={praveen}
                   alt="TDS Video"
@@ -120,7 +203,7 @@ export const Hero = () => {
 
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                   <button
-                    onClick={handlePlay}
+                    onClick={() => handlePlay()}
                     className="grid h-20 w-20 place-items-center rounded-full bg-white text-primary shadow-glow transition hover:scale-105"
                   >
                     <PlayCircle className="h-12 w-12" />
@@ -146,7 +229,7 @@ export const Hero = () => {
                 <div className="aspect-[9/16] w-full max-h-[460px] overflow-hidden rounded-2xl">
                   <iframe
                     className="h-full w-full"
-                    src="https://www.youtube.com/embed/XTKa74jK9Z4?autoplay=1&mute=1&rel=0"
+                    src="https://www.youtube.com/embed/XTKa74jK9Z4?autoplay=1&mute=1&playsinline=1&rel=0"
                     title="YouTube Short"
                     allow="autoplay; encrypted-media"
                     allowFullScreen
