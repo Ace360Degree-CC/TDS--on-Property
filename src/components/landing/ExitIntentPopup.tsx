@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
  import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,24 +18,28 @@ type FormData = z.infer<typeof schema>;
 
 export const ExitIntentPopup = () => {
   const [open, setOpen] = useState(false);
-  const [shown, setShown] = useState(false);
-   const navigate = useNavigate();
+  const hasTriggeredAt50Ref = useRef(false);
+  const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   useEffect(() => {
-    if (shown) return;
-    const onLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && !shown) {
-        setShown(true);
+    const getScrollPercent = () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight <= 0) return 0;
+      return (window.scrollY / scrollHeight) * 100;
+    };
+
+    const handleScroll = () => {
+      const percent = getScrollPercent();
+      if (!hasTriggeredAt50Ref.current && percent >= 30) {
+        hasTriggeredAt50Ref.current = true;
         setOpen(true);
       }
     };
-    const t = setTimeout(() => document.addEventListener("mouseout", onLeave), 8000);
-    return () => {
-      clearTimeout(t);
-      document.removeEventListener("mouseout", onLeave);
-    };
-  }, [shown]);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const onSubmit = (data: FormData) => {
     const msg = `Hi! Exit popup form\nName: ${data.name}\nMobile: ${data.mobile}\nI want to file TDS now.`;

@@ -2,7 +2,7 @@
 export const CONTACT = {
   whatsapp: "918169887643", // ✅ correct format
   phoneDisplay: "+91 81698 87643",
-  email: "info@praveenjassociates.com",
+  email: "Pjain4069@gmail.com",
   locations: "Mumbai • Navi Mumbai • Thane • Pune",
 };
 
