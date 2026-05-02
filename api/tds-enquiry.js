@@ -88,7 +88,7 @@ export default async function handler(req, res) {
         <p>We have received your request and our team will get back to you shortly.</p>
         <br/>
         <p><b>CA Praveen Jain Team</b></p>
-        <p>📞 +91-XXXXXXXXXX</p>
+        <p>📞 +91-8169887643</p>
       `,
     });
 
